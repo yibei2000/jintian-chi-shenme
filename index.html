@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FF7A1A">
+<title>今天吃什么 · 校园午餐决策器</title>
+<style>
+  :root{
+    --orange:#FF7A1A;
+    --orange-d:#E8620A;
+    --orange-l:#FFF1E6;
+    --ink:#241C15;
+    --ink-2:#5B4B3E;
+    --muted:#8B7A6B;
+    --line:#F0E3D8;
+    --bg:#FFF9F4;
+    --card:#FFFFFF;
+    --ok:#2E9E5B;
+    --radius:18px;
+    --shadow:0 2px 4px rgba(120,72,30,.04), 0 8px 24px rgba(120,72,30,.07);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .wrap{max-width:430px;margin:0 auto;padding:0 16px 40px}
+
+  /* ---------- header ---------- */
+  header{
+    background:linear-gradient(160deg,#FF8F3C 0%,#FF7A1A 55%,#F2600A 100%);
+    margin:0 -16px 18px;
+    padding:calc(22px + env(safe-area-inset-top)) 22px 24px;
+    border-radius:0 0 26px 26px;
+    color:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";position:absolute;right:-40px;top:-50px;
+    width:170px;height:170px;border-radius:50%;
+    background:rgba(255,255,255,.13);
+  }
+  header::before{
+    content:"";position:absolute;right:30px;top:60px;
+    width:80px;height:80px;border-radius:50%;
+    background:rgba(255,255,255,.10);
+  }
+  .kicker{
+    font-size:12px;letter-spacing:.12em;
+    opacity:.9;margin:0 0 6px;position:relative;z-index:1;
+  }
+  h1{
+    font-size:29px;line-height:1.15;margin:0 0 6px;
+    font-weight:800;letter-spacing:-.5px;position:relative;z-index:1;
+  }
+  .sub{font-size:13.5px;opacity:.92;margin:0;position:relative;z-index:1}
+
+  /* ---------- card ---------- */
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px 18px 20px;
+    margin-bottom:14px;
+    border:1px solid rgba(240,227,216,.75);
+  }
+  .label{
+    font-size:13px;font-weight:700;color:var(--ink-2);
+    margin:0 0 10px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .label .val{
+    font-size:22px;font-weight:800;color:var(--orange);
+    font-variant-numeric:tabular-nums;letter-spacing:-.5px;
+  }
+  .label .val small{font-size:12px;font-weight:600;margin-left:2px;color:var(--orange-d)}
+
+  /* range */
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;
+    width:100%;height:34px;background:transparent;margin:0 0 2px;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:8px;border-radius:99px;
+    background:linear-gradient(90deg,var(--orange) 0%,var(--orange) var(--pct,40%),#F3E4D8 var(--pct,40%),#F3E4D8 100%);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:28px;height:28px;border-radius:50%;
+    background:#fff;border:3px solid var(--orange);
+    box-shadow:0 2px 8px rgba(255,122,26,.35);
+    margin-top:-10px;cursor:pointer;
+  }
+  input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:#F3E4D8}
+  input[type=range]::-moz-range-progress{height:8px;border-radius:99px;background:var(--orange)}
+  input[type=range]::-moz-range-thumb{
+    width:24px;height:24px;border-radius:50%;background:#fff;
+    border:3px solid var(--orange);cursor:pointer;
+  }
+  .scale{
+    display:flex;justify-content:space-between;
+    font-size:11px;color:var(--muted);margin-top:-2px;
+  }
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    border:1.5px solid var(--line);
+    background:#fff;color:var(--ink-2);
+    font-size:14px;font-weight:600;
+    padding:9px 15px;border-radius:99px;
+    cursor:pointer;transition:all .16s ease;
+    min-height:40px;display:inline-flex;align-items:center;
+    user-select:none;
+  }
+  .chip:active{transform:scale(.96)}
+  .chip.on{
+    background:var(--orange);border-color:var(--orange);
+    color:#fff;box-shadow:0 3px 10px rgba(255,122,26,.28);
+  }
+
+  /* segmented */
+  .seg{display:flex;gap:8px}
+  .seg button{
+    flex:1;border:1.5px solid var(--line);background:#fff;
+    color:var(--ink-2);font-size:14px;font-weight:600;
+    padding:11px 4px;border-radius:13px;cursor:pointer;
+    transition:all .16s ease;font-family:inherit;min-height:46px;
+  }
+  .seg button:active{transform:scale(.97)}
+  .seg button.on{
+    background:var(--orange-l);border-color:var(--orange);
+    color:var(--orange-d);box-shadow:inset 0 0 0 1px rgba(255,122,26,.25);
+  }
+  .seg small{display:block;font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px}
+  .seg button.on small{color:var(--orange-d);opacity:.8}
+
+  /* primary button */
+  .go{
+    width:100%;border:0;border-radius:16px;
+    background:linear-gradient(160deg,#FF8F3C,#F2600A);
+    color:#fff;font-size:18px;font-weight:800;letter-spacing:.02em;
+    padding:17px;margin-top:18px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(242,96,10,.32);
+    font-family:inherit;transition:transform .12s ease,box-shadow .12s ease;
+  }
+  .go:active{transform:translateY(1px) scale(.99);box-shadow:0 3px 10px rgba(242,96,10,.3)}
+
+  /* ---------- results ---------- */
+  .result-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:22px 2px 10px;
+  }
+  .result-head h2{font-size:17px;margin:0;font-weight:800;letter-spacing:-.2px;min-width:0}
+  .result-head .hint{font-size:12px;color:var(--muted);flex:none;white-space:nowrap}
+
+  .note{
+    background:#FFF4EC;border:1px solid #FFE0C8;color:#A2551B;
+    font-size:12.5px;line-height:1.5;
+    padding:10px 13px;border-radius:12px;margin:0 0 12px;
+  }
+  .note b{font-weight:700}
+
+  .dish{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:var(--shadow);border:1px solid rgba(240,227,216,.75);
+    padding:16px 16px 13px;margin-bottom:12px;
+    animation:rise .28s cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .dish.replacing{animation:swap .3s ease both}
+  @keyframes swap{0%{opacity:1}45%{opacity:.15}100%{opacity:1}}
+
+  .dish-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .dish-name{font-size:13px;font-weight:700;color:var(--orange-d);margin:0 0 3px;letter-spacing:.02em}
+  .dish-main{font-size:20px;font-weight:800;margin:0;letter-spacing:-.3px;line-height:1.25}
+  .rank{
+    flex:none;width:26px;height:26px;border-radius:9px;
+    background:var(--orange-l);color:var(--orange-d);
+    font-size:13px;font-weight:800;
+    display:grid;place-items:center;margin-top:2px;
+  }
+
+  .meta{
+    display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 0;
+  }
+  .tag{
+    font-size:12px;font-weight:700;color:var(--ink-2);
+    background:#FAF3EC;border-radius:8px;padding:5px 9px;
+    font-variant-numeric:tabular-nums;
+  }
+  .tag.price{background:#FFF1E6;color:var(--orange-d)}
+  .tag.wait{background:#EAF6EF;color:#217A47}
+  .tag.kcal{background:#F1EFFA;color:#5B4BA8}
+
+  .why{
+    font-size:13px;color:var(--ink-2);line-height:1.55;
+    margin:11px 0 0;padding-top:11px;border-top:1px dashed var(--line);
+  }
+  .why b{color:var(--orange-d);font-weight:700}
+
+  .swap{
+    width:100%;margin-top:12px;border:1.5px solid var(--line);
+    background:#fff;color:var(--ink-2);
+    font-size:14px;font-weight:700;font-family:inherit;
+    padding:11px;border-radius:12px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .15s ease;min-height:44px;
+  }
+  .swap:active{transform:scale(.985);background:#FDF8F3}
+  .swap:disabled{opacity:.4;cursor:not-allowed}
+  .swap svg{width:15px;height:15px}
+
+  .empty{
+    text-align:center;color:var(--muted);font-size:14px;
+    padding:28px 16px;background:#fff;border-radius:var(--radius);
+    border:1px dashed var(--line);
+  }
+
+  footer{
+    text-align:center;color:var(--muted);font-size:11.5px;
+    line-height:1.7;margin-top:24px;padding:0 8px;
+  }
+  footer b{color:var(--ink-2)}
+  .hide{display:none !important}
+
+  /* ---------- 猜你喜欢 ---------- */
+  .guess{
+    background:linear-gradient(155deg,#3B2A1E 0%,#5C3A22 100%);
+    color:#fff;border-radius:20px;padding:18px 18px 16px;
+    margin:0 0 14px;
+    box-shadow:0 8px 24px rgba(80,45,15,.22);
+    position:relative;overflow:hidden;
+    animation:rise .3s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .guess::after{
+    content:"";position:absolute;right:-46px;top:-56px;
+    width:150px;height:150px;border-radius:50%;
+    background:rgba(255,255,255,.07);
+  }
+  .guess-kicker{
+    font-size:11.5px;letter-spacing:.1em;opacity:.85;
+    margin:0 0 8px;display:flex;align-items:center;gap:6px;
+    position:relative;z-index:1;
+  }
+  .guess-kicker b{color:#FFC48A;font-weight:700}
+  .guess-name{
+    font-size:22px;font-weight:800;margin:0 0 3px;
+    letter-spacing:-.4px;position:relative;z-index:1;
+  }
+  .guess-place{
+    font-size:12.5px;opacity:.82;margin:0 0 10px;
+    position:relative;z-index:1;font-variant-numeric:tabular-nums;
+  }
+  .guess-why{
+    font-size:13px;line-height:1.6;margin:0;opacity:.95;
+    padding-top:10px;border-top:1px solid rgba(255,255,255,.14);
+    position:relative;z-index:1;
+  }
+  .guess-why b{color:#FFC48A;font-weight:700}
+  .guess-actions{
+    display:flex;gap:8px;margin-top:13px;
+    position:relative;z-index:1;
+  }
+  .gbtn{
+    flex:1;border-radius:12px;border:1px solid rgba(255,255,255,.28);
+    background:rgba(255,255,255,.08);color:#fff;
+    font-family:inherit;font-size:13.5px;font-weight:700;
+    padding:11px 8px;cursor:pointer;min-height:44px;
+    transition:all .15s ease;
+  }
+  .gbtn:active{transform:scale(.98)}
+  .gbtn.primary{
+    background:#FF8A2B;border-color:#FF8A2B;
+    box-shadow:0 4px 14px rgba(255,138,43,.35);
+  }
+  .gbtn:disabled{opacity:.55;cursor:default}
+
+  /* ---------- 卡片底部按钮 ---------- */
+  .actions{display:flex;gap:8px;margin-top:12px}
+  .actions .swap{
+    flex:1;margin-top:0;
+  }
+  .eat{
+    flex:1.15;border:0;border-radius:12px;
+    background:var(--orange);color:#fff;
+    font-size:14px;font-weight:800;font-family:inherit;
+    padding:11px;cursor:pointer;min-height:44px;
+    box-shadow:0 4px 12px rgba(255,122,26,.28);
+    transition:all .15s ease;
+  }
+  .eat:active{transform:scale(.985)}
+  .eat.done{
+    background:#EAF6EF;color:#217A47;
+    box-shadow:none;font-weight:700;
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="kicker">校园午餐决策器</p>
+    <h1>今天吃什么</h1>
+    <p class="sub">说清预算和忌口，10 秒给你三个答案</p>
+  </header>
+
+  <!-- 输入区 -->
+  <section class="card" aria-label="输入条件">
+    <div class="label">
+      <span>我这个月还剩</span>
+      <span class="val" id="budgetVal">12<small>元</small></span>
+    </div>
+    <input type="range" id="budget" min="5" max="25" step="1" value="12" aria-label="预算">
+    <div class="scale"><span>5 元</span><span>25 元</span></div>
+
+    <div class="label" style="margin-top:20px"><span>我不吃</span></div>
+    <div class="chips" id="taboo" role="group" aria-label="忌口">
+      <button class="chip" data-t="辣">辣</button>
+      <button class="chip" data-t="香菜">香菜</button>
+      <button class="chip" data-t="葱姜蒜">葱姜蒜</button>
+      <button class="chip" data-t="猪肉">猪肉</button>
+      <button class="chip" data-t="牛肉">牛肉</button>
+      <button class="chip" data-t="海鲜">海鲜</button>
+      <button class="chip on" data-t="none">都不忌口</button>
+    </div>
+
+    <div class="label" style="margin-top:20px"><span>现在食堂人多吗</span></div>
+    <div class="seg" id="crowd" role="group" aria-label="拥挤程度">
+      <button data-c="empty">很空<small>随便挑</small></button>
+      <button data-c="normal" class="on">一般<small>排一会儿</small></button>
+      <button data-c="packed">很挤<small>只等快的</small></button>
+    </div>
+
+    <button class="go" id="go">帮我选</button>
+  </section>
+
+  <!-- 结果区 -->
+  <div id="result" class="hide">
+    <div id="guess" class="hide"></div>
+    <div class="result-head">
+      <h2>给你挑了这三家</h2>
+      <span class="hint" id="countHint"></span>
+    </div>
+    <div id="note" class="note hide"></div>
+    <div id="list"></div>
+  </div>
+
+  <footer>
+    窗口数据为示例，换成你学校食堂的价目表即可直接用。<br>
+    <b>营养数值为估算值</b>，仅供选餐参考。
+  </footer>
+</div>
+
+<script>
+/* ---------------- 数据 ---------------- */
+const DISHES = [
+  {id:'a3', place:'一食堂 3 号', name:'番茄炒蛋盖饭', lo:8,  hi:12, tags:[],            wait:5,  kcal:550, prot:18},
+  {id:'a7', place:'一食堂 7 号', name:'麻辣香锅',     lo:12, hi:18, tags:['辣'],         wait:15, kcal:820, prot:26},
+  {id:'b2', place:'二食堂 2 号', name:'黄焖鸡米饭',   lo:13, hi:15, tags:['葱姜蒜'],     wait:8,  kcal:700, prot:32},
+  {id:'b5', place:'二食堂 5 号', name:'兰州拉面',     lo:9,  hi:13, tags:['香菜'],       wait:6,  kcal:560, prot:22},
+  {id:'c1', place:'三食堂 1 号', name:'清真快餐',     lo:10, hi:14, tags:['猪肉'],       wait:4,  kcal:620, prot:28},
+  {id:'a2', place:'一食堂 2 号', name:'手擀面',       lo:7,  hi:10, tags:['香菜','葱姜蒜'], wait:7, kcal:480, prot:14},
+  {id:'b8', place:'二食堂 8 号', name:'石锅拌饭',     lo:14, hi:17, tags:['辣'],         wait:12, kcal:760, prot:24},
+  {id:'c4', place:'三食堂 4 号', name:'素菜套餐',     lo:6,  hi:9,  tags:[],            wait:3,  kcal:420, prot:11},
+  {id:'b1', place:'二食堂 1 号', name:'水煮鱼',       lo:16, hi:22, tags:['辣','海鲜'],   wait:18, kcal:900, prot:35},
+  {id:'c2', place:'三食堂 2 号', name:'蒸饺配粥',     lo:8,  hi:11, tags:['猪肉'],       wait:9,  kcal:520, prot:20}
+];
+
+/* ---------------- 本机偏好存储 ---------------- */
+const STORAGE_KEY = 'jintian-eat-v1';
+const GUESS_AFTER = 5;
+
+const store = (function(){
+  let ok = true, mem = {};
+  try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); } catch(e){ ok = false; }
+  return {
+    get(k){
+      try { return ok ? localStorage.getItem(k) : (k in mem ? mem[k] : null); }
+      catch(e){ return (k in mem ? mem[k] : null); }
+    },
+    set(k,v){
+      try { if(ok) localStorage.setItem(k,v); else mem[k] = v; }
+      catch(e){ mem[k] = v; }
+    }
+  };
+})();
+
+let prefs = loadPrefs();
+function loadPrefs(){
+  try{
+    const raw = store.get(STORAGE_KEY);
+    if(raw){
+      const p = JSON.parse(raw);
+      if(p && Array.isArray(p.history)) return {uses: p.uses|0, history: p.history};
+    }
+  }catch(e){}
+  return {uses: 0, history: []};
+}
+function savePrefs(){ store.set(STORAGE_KEY, JSON.stringify(prefs)); }
+
+/* ---------------- 状态 ---------------- */
+const state = {
+  budget: 12,
+  taboo: [],
+  crowd: 'normal',
+  pool: [],
+  shown: [],
+  guessList: [],
+  guessIdx: 0
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------------- 输入交互 ---------------- */
+const rangeEl = $('#budget');
+function syncRange(){
+  const pct = (state.budget - 5) / 20 * 100;
+  rangeEl.style.setProperty('--pct', pct + '%');
+  $('#budgetVal').innerHTML = state.budget + '<small>元</small>';
+}
+rangeEl.addEventListener('input', e => {
+  state.budget = +e.target.value;
+  syncRange();
+});
+
+$('#taboo').addEventListener('click', e => {
+  const btn = e.target.closest('.chip');
+  if(!btn) return;
+  const t = btn.dataset.t;
+
+  if(t === 'none'){
+    state.taboo = [];
+    $$('#taboo .chip').forEach(c => c.classList.toggle('on', c.dataset.t === 'none'));
+    return;
+  }
+  const noneChip = $$('#taboo .chip').find(c => c.dataset.t === 'none');
+  noneChip.classList.remove('on');
+
+  if(state.taboo.includes(t)){
+    state.taboo = state.taboo.filter(x => x !== t);
+    btn.classList.remove('on');
+  }else{
+    state.taboo.push(t);
+    btn.classList.add('on');
+  }
+  if(state.taboo.length === 0) noneChip.classList.add('on');
+});
+
+$('#crowd').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  state.crowd = btn.dataset.c;
+  $$('#crowd button').forEach(b => b.classList.toggle('on', b === btn));
+});
+
+/* ---------------- 推荐逻辑 ---------------- */
+function crowdLimit(){ return state.crowd === 'packed' ? 10 : 99; }
+function passesTaboo(d){ return d.tags.every(t => !state.taboo.includes(t)); }
+function passesBudget(d){ return d.lo <= state.budget; }
+
+function buildPool(){
+  const strict = [], byCrowd = [], byPrice = [], rest = [];
+
+  DISHES.filter(passesTaboo).forEach(d => {
+    const okBudget = passesBudget(d);
+    const okCrowd  = d.wait <= crowdLimit();
+    if(okBudget && okCrowd) strict.push({...d, tier:0});
+    else if(okBudget)       byCrowd.push({...d, tier:1});
+    else if(okCrowd)        byPrice.push({...d, tier:2});
+    else                    rest.push({...d, tier:3});
+  });
+
+  const byWait = (a,b) => a.wait - b.wait || a.lo - b.lo;
+  strict.sort(byWait); byCrowd.sort(byWait); byPrice.sort(byWait); rest.sort(byWait);
+  return [...strict, ...byCrowd, ...byPrice, ...rest];
+}
+
+function reasonFor(d){
+  const bits = [];
+  if(d.hi <= state.budget){
+    bits.push(`一份 ${d.lo}–${d.hi} 元，<b>在你 ${state.budget} 元的预算内</b>`);
+  }else if(d.lo <= state.budget){
+    bits.push(`${d.lo} 元起，<b>${state.budget} 元刚好够点一份</b>`);
+  }else{
+    bits.push(`${d.lo} 元起，<b>比预算多 ${d.lo - state.budget} 元</b>，特别想吃可以冲`);
+  }
+
+  if(state.taboo.length){
+    bits.push(`不放${state.taboo.join('、')}`);
+  }else if(d.tags.length){
+    bits.push(`口味偏${d.tags.join('、')}，你说了都不忌口`);
+  }else{
+    bits.push('清淡不挑人');
+  }
+
+  if(state.crowd === 'packed' && d.wait <= 10){
+    bits.push(`现在人多，这家 <b>${d.wait} 分钟</b>就能端走`);
+  }else if(d.wait <= 5){
+    bits.push(`出餐只要 ${d.wait} 分钟`);
+  }else{
+    bits.push(`大概等 ${d.wait} 分钟`);
+  }
+
+  bits.push(`一份约 ${d.kcal} 千卡`);
+  return bits.join('，') + '。';
+}
+
+function renderNote(){
+  const noteEl = $('#note');
+  const tier1 = state.pool.slice(0, 3).filter(d => d.tier === 1).length;
+
+  if(tier1 > 0){
+    noteEl.innerHTML = `现在很挤，<b>排队超过 10 分钟的 ${tier1} 家已经跳过了</b>，`
+      + `可选的快窗口不够 3 家，所以补了等得稍久一点的。`;
+    noteEl.classList.remove('hide');
+    return;
+  }
+  const tier2 = state.pool.slice(0, 3).filter(d => d.tier === 2).length;
+  if(tier2 > 0){
+    noteEl.innerHTML = `这个价位能选的只有这么几家，<b>补了两家略微超预算的</b>，价格都标在卡片上。`;
+    noteEl.classList.remove('hide');
+    return;
+  }
+  if(state.crowd === 'packed'){
+    const skipped = DISHES.filter(d => passesTaboo(d) && passesBudget(d) && d.wait > 10).length;
+    noteEl.innerHTML = skipped > 0
+      ? `现在很挤，<b>已自动跳过排队超过 10 分钟的 ${skipped} 家</b>。`
+      : `现在很挤，这几家都在 <b>10 分钟</b>内能拿到。`;
+    noteEl.classList.remove('hide');
+    return;
+  }
+  noteEl.classList.add('hide');
+}
+
+const SWAP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2M21 12a9 9 0 0 1-15.5 6.2"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>`;
+
+function cardHTML(d, idx){
+  const over = d.lo > state.budget;
+  const priceTag = over ? `${d.lo}–${d.hi} 元 · 超预算` : `${d.lo}–${d.hi} 元`;
+  return `
+    <article class="dish" data-idx="${idx}" data-id="${d.id}">
+      <div class="dish-top">
+        <div>
+          <p class="dish-name">${d.place}</p>
+          <h3 class="dish-main">${d.name}</h3>
+        </div>
+        <div class="rank">${idx + 1}</div>
+      </div>
+      <div class="meta">
+        <span class="tag price">${priceTag}</span>
+        <span class="tag wait">等 ${d.wait} 分钟</span>
+        <span class="tag kcal">${d.kcal} 千卡 · 蛋白 ${d.prot}g</span>
+      </div>
+      <p class="why">${reasonFor(d)}</p>
+      <div class="actions">
+        <button class="swap" data-swap="${idx}">${SWAP_ICON} 换一个</button>
+        <button class="eat" data-eat="${idx}">就吃这家</button>
+      </div>
+    </article>`;
+}
+
+function renderAll(){
+  $('#list').innerHTML = state.shown.map((id, i) => {
+    const d = state.pool.find(x => x.id === id);
+    return cardHTML(d, i);
+  }).join('');
+  $('#countHint').textContent = state.shown.length + ' 家';
+  refreshSwapButtons();
+  renderNote();
+}
+
+function refreshSwapButtons(){
+  const hasNext = state.pool.some(d => !state.shown.includes(d.id));
+  state.shown.forEach((id, i) => {
+    const btn = document.querySelector(`[data-swap="${i}"]`);
+    if(!btn) return;
+    btn.disabled = !hasNext;
+    if(!hasNext) btn.innerHTML = '没有更多了';
+  });
+}
+
+/* ---------------- 期待值：从历史里推偏好 ---------------- */
+function profile(){
+  const h = prefs.history;
+  const n = h.length || 1;
+  const avgB = h.reduce((s, x) => s + (x.b || 12), 0) / n;
+  const packed = h.filter(x => x.c === 'packed').length * 2 >= n;
+
+  const tc = {};
+  h.forEach(x => (x.t || []).forEach(t => tc[t] = (tc[t] || 0) + 1));
+  const topTaboo = Object.keys(tc).filter(k => tc[k] * 2 >= n);
+
+  const pickCount = {};
+  h.forEach(x => { if(x.picked) pickCount[x.picked] = (pickCount[x.picked] || 0) + 1; });
+  const topEntry = Object.entries(pickCount).sort((a, b) => b[1] - a[1])[0];
+  const favorite = topEntry ? DISHES.find(d => d.id === topEntry[0]) : null;
+
+  const shownIds = new Set();
+  h.forEach(x => (x.shown || []).forEach(id => shownIds.add(id)));
+
+  return {n: h.length, avgB, packed, topTaboo, favorite, shownIds};
+}
+
+function scoreOf(d, p){
+  let s = 0;
+  if(d.lo <= p.avgB) s += 2;
+  if(d.hi <= p.avgB) s += 1;
+  if(p.packed && d.wait <= 6) s += 2;
+  else if(d.wait <= 9) s += 1;
+  if(p.favorite){
+    if(d.id === p.favorite.id) s += 3;
+    else if(Math.abs(d.lo - p.favorite.lo) <= 3 && Math.abs(d.wait - p.favorite.wait) <= 4) s += 2;
+  }
+  if(!p.shownIds.has(d.id)) s += 1;
+  return s;
+}
+
+function rankGuess(){
+  const p = profile();
+  const cur = new Set(state.shown);
+  const avoid = new Set([...state.taboo, ...p.topTaboo]);
+  return DISHES
+    .filter(d => !d.tags.some(t => avoid.has(t)))
+    .filter(d => !cur.has(d.id))
+    .map(d => ({d, s: scoreOf(d, p)}))
+    .sort((a, b) => b.s - a.s || a.d.wait - b.d.wait)
+    .map(x => x.d);
+}
+
+function guessWhy(d){
+  const p = profile();
+  const bits = [];
+  bits.push(`你前 ${p.n} 次都把预算压在 <b>${Math.round(p.avgB)} 元</b>左右`);
+  if(p.topTaboo.length) bits.push(`一直避开<b>${p.topTaboo.join('、')}</b>`);
+  if(p.packed) bits.push('而且多半在赶时间');
+  if(p.favorite){
+    bits.push(d.id === p.favorite.id
+      ? '上次你点的就是它，看来是吃对了'
+      : `上次你点了「${p.favorite.name}」，价位和等餐时间跟它最接近`);
+  }
+  bits.push(`这家 ${d.lo} 元起、等 ${d.wait} 分钟`);
+  return bits.join('，') + '。';
+}
+
+function renderGuess(){
+  const box = $('#guess');
+  if(prefs.uses < GUESS_AFTER){
+    box.classList.add('hide');
+    box.innerHTML = '';
+    return;
+  }
+  state.guessList = rankGuess();
+  if(!state.guessList.length){ box.classList.add('hide'); box.innerHTML = ''; return; }
+  if(state.guessIdx >= state.guessList.length) state.guessIdx = 0;
+  const d = state.guessList[state.guessIdx];
+
+  box.innerHTML = `
+    <div class="guess">
+      <p class="guess-kicker">猜你喜欢 · 第 <b>${prefs.uses}</b> 次，我已经认得你了</p>
+      <h3 class="guess-name">${d.name}</h3>
+      <p class="guess-place">${d.place} · ${d.lo}–${d.hi} 元 · 等 ${d.wait} 分钟 · ${d.kcal} 千卡</p>
+      <p class="guess-why">${guessWhy(d)}</p>
+      <div class="guess-actions">
+        <button class="gbtn" data-gswap="1">换一个猜猜</button>
+        <button class="gbtn primary" data-geat="1">就吃这家</button>
+      </div>
+    </div>`;
+  box.classList.remove('hide');
+}
+
+/* ---------------- 行为记录 ---------------- */
+function recordPick(id){
+  const last = prefs.history[prefs.history.length - 1];
+  if(last) last.picked = id;
+  savePrefs();
+}
+
+function logUse(){
+  prefs.uses += 1;
+  prefs.history.push({
+    b: state.budget,
+    t: [...state.taboo],
+    c: state.crowd,
+    shown: [...state.shown],
+    picked: null
+  });
+  if(prefs.history.length > 12) prefs.history.shift();
+  savePrefs();
+}
+
+/* ---------------- 主流程 ---------------- */
+function pick(){
+  state.pool = buildPool();
+  state.shown = state.pool.slice(0, 3).map(d => d.id);
+  state.guessIdx = 0;
+  logUse();
+
+  $('#result').classList.remove('hide');
+
+  if(state.shown.length === 0){
+    $('#list').innerHTML = `<div class="empty">这些条件凑不出结果，<br>试试放宽预算，或者取消一两个忌口。</div>`;
+    $('#note').classList.add('hide');
+    $('#countHint').textContent = '';
+    $('#guess').classList.add('hide');
+    return;
+  }
+  renderAll();
+  renderGuess();
+  $('#result').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+$('#go').addEventListener('click', pick);
+
+/* 就吃这家 / 换一个 */
+$('#list').addEventListener('click', e => {
+  const eatBtn = e.target.closest('[data-eat]');
+  if(eatBtn && !eatBtn.disabled){
+    const idx = +eatBtn.dataset.eat;
+    recordPick(state.shown[idx]);
+    eatBtn.classList.add('done');
+    eatBtn.textContent = '记下了 ✓';
+    eatBtn.disabled = true;
+    return;
+  }
+
+  const btn = e.target.closest('[data-swap]');
+  if(!btn || btn.disabled) return;
+  const idx = +btn.dataset.swap;
+  const next = state.pool.find(d => !state.shown.includes(d.id));
+  if(!next) return;
+
+  const card = document.querySelector(`.dish[data-idx="${idx}"]`);
+  card.classList.add('replacing');
+  setTimeout(() => {
+    state.shown[idx] = next.id;
+    card.outerHTML = cardHTML(next, idx);
+    refreshSwapButtons();
+  }, 160);
+});
+
+/* 猜你喜欢里的两个按钮 */
+$('#guess').addEventListener('click', e => {
+  if(e.target.closest('[data-gswap]')){
+    state.guessIdx = (state.guessIdx + 1) % state.guessList.length;
+    renderGuess();
+    return;
+  }
+  const eat = e.target.closest('[data-geat]');
+  if(eat && !eat.disabled){
+    recordPick(state.guessList[state.guessIdx].id);
+    eat.classList.add('done');
+    eat.textContent = '记下了 ✓';
+    eat.disabled = true;
+  }
+});
+
+/* ---------- 分享链接 / 调试参数 ---------- */
+function applyQuery(){
+  const q = new URLSearchParams(location.search);
+  const TABOOS = ['辣','香菜','葱姜蒜','猪肉','牛肉','海鲜'];
+
+  if(q.get('reset') === '1'){
+    prefs = {uses: 0, history: []};
+    savePrefs();
+  }
+  if(q.has('b')){
+    const v = parseInt(q.get('b'), 10);
+    if(!isNaN(v)) state.budget = Math.min(25, Math.max(5, v));
+    rangeEl.value = state.budget;
+  }
+  if(q.has('t')){
+    state.taboo = (q.get('t') || '').split(',').map(s => s.trim()).filter(x => TABOOS.includes(x));
+    $$('#taboo .chip').forEach(c => {
+      if(c.dataset.t === 'none') c.classList.toggle('on', state.taboo.length === 0);
+      else c.classList.toggle('on', state.taboo.includes(c.dataset.t));
+    });
+  }
+  if(q.has('c')){
+    const c = q.get('c');
+    if(['empty','normal','packed'].includes(c)) state.crowd = c;
+    $$('#crowd button').forEach(b => b.classList.toggle('on', b.dataset.c === state.crowd));
+  }
+  syncRange();
+  if(q.get('auto') === '1') pick();
+}
+
+applyQuery();
+</script>
+</body>
+</html>
